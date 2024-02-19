@@ -9,7 +9,31 @@ export const test = async (req, res)=>{
     return res.send({message: 'Test is running User'})
 }
 
+export const createTeacherDefault = async(req, res)=>{
+    try {
+        let  profesorExistente = await User.find({ _role: 'TEACHER_ROLE' });
+          if (!profesorExistente) {
+        passwordD = await encrypt('12345678')
+        let nuevoProfesor = new User({
+            name: 'Carlos',
+            email: 'Carlos@example.com',
+            username: 'caralt',
+            password: passwordD,
+            phone: '12352602',
+            role: 'TEACHER_ROLE'
+          });
+        let user = new User(data)
+        await user.save()
+        console.log('teacher register correctly');
+        } else {
+        console.log('Alredy exist Teacher.');
+        }
 
+    } catch (error) {
+        console.error(error)
+        res.status(500).send({message: 'Error registering teacher', error: error})
+    }
+}
 
 export const login = async(req, res) =>{
     try {
@@ -39,7 +63,7 @@ export const userAdd = async(req, res) =>{
         let data = req.body
         console.log(data)
         data.password = await encrypt(data.password)
-        //data.role = 'STUDENT_ROLE'
+        data.role = 'STUDENT_ROLE'
         let user = new User(data)
         await user.save()
         return res.send({message: `Registered successfully, can be logged with username ${user.username}`})
