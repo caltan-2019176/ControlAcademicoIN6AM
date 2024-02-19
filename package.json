@@ -1,0 +1,24 @@
+{
+  "name": "controlacademico",
+  "version": "1.0.0",
+  "description": "Api para control ácademico, laboratorio de práctica supervisada ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node setUp.js && nodemon index.js"
+  },
+  "author": "CA (Carlos Altán)",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.4",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.1.3",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  },
+  "type": "module"
+}
