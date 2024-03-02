@@ -10,6 +10,6 @@ api.get('/test', test)
 api.post('/addCourse', [validateJwt, isTeacher], addCourse)
 api.delete('/delte/:id', [validateJwt, isTeacher], deleteCourse)
 api.get('/get', [validateJwt, isTeacher], searchCourse)
-api.purge('/update', [validateJwt, isTeacher],updateCourse)
+api.put('/update/:id', [validateJwt, isTeacher],updateCourse)
 
 export default api

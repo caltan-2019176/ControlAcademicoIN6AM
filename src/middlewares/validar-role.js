@@ -16,7 +16,7 @@ export const isTeacher = async(req, res, next)=>{
 export const isStudent = async(req, res, next)=>{
     try {
         let {user} = req
-        if(!user || user.role !== 'STUDENT_ROLE') return res.status(403).send({message: `You do not have acces | username: ${student.username}`})
+        if(!user || user.role !== 'STUDENT_ROLE') return res.status(403).send({message: `You do not have acces | username: ${user.username}`})
         next()
     } catch (error) {
         console.error(error)
@@ -31,11 +31,11 @@ export const validateJwt = async(req, res, next) =>{
         //varible de entorno
         let secretKey = process.env.SECRET_KEY  
         //obtener el token
-        let {token} = req.headers
+        let {authorization} = req.headers
         //verificar si viene
-        if(!token) return res.status(401).send({message: 'Unauthorized'})
+        if(!authorization) return res.status(401).send({message: 'Unauthorized'})
         //obtner el uid del usuario
-        let {uid} = jwt.verify(token, secretKey)
+        let {uid} = jwt.verify(authorization, secretKey)
         //validar si aun existe en la Base de datos
         let user = await User.findOne({_id: uid})
         if(!user)  return res.status(404).send({message: 'user not found - Unauthorized '})

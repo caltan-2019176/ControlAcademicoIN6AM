@@ -27,7 +27,8 @@ export const checkPassword = async(password, hash)=>{
 
 export const checkUpdate = (data, id)=>{
     if(id){
-        if(Object.entries(data).length === 0 ){
+        if(Object.entries(data).length === 0 ||
+            data.password){
             return false
         }
         return true
@@ -49,4 +50,22 @@ export const checkUpdate = (data, id)=>{
         return true
     }
     
+}
+
+
+export const checkUpdateRole = async (data, id) => {
+    if (id) {
+        if (Object.entries(data).length === 0 ||
+            data.username||
+            data.name||
+            data.email ||
+            data.password ||
+            data.phone ||
+            data.name) {
+            return false
+        }
+        return true
+    } else {
+        return false
+    }
 }

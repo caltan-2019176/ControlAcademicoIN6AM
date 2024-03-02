@@ -10,7 +10,8 @@ export const test = async (req, res) => {
 export const assingCourse = async (req, res) => {
   try {
     let data = req.body;
-
+    data.student = req.user._id
+    console.log(data.student)
     // Verificar si el estudiante ya esta asignado a este curso
     const existingAssignment = await AsignacionCurso.findOne({ course: data.course, student: data.student });
     if (existingAssignment) {
@@ -55,9 +56,18 @@ export const searchCoursesByStudent = async (req, res) => {
     // Buscar todas las asignaciones de curso del usuario
     const asignaciones = await AsignacionCurso.find({ student: id }).populate('course');
 
-    // Extraer los detalles de los cursos de las asignaciones
-    //const cursosAsignados = asignaciones.map(asignacion => asignacion.course);
 
+    return res.send({asignaciones});
+  } catch (error) {
+    console.error('Error al obtener los cursos asignados al usuario:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+}
+
+export const getAssigment = async (req, res) => {
+  try {
+    const asignaciones = await AsignacionCurso.find().populate('course', ['nameCourse', 'description', 'finishDate', 'teacher']).populate('student', ['name', 'username'])
+    if(!asignaciones) return res.status(404).send({message: 'assigments not found'})
     return res.send({asignaciones});
   } catch (error) {
     console.error('Error al obtener los cursos asignados al usuario:', error);

@@ -48,7 +48,7 @@ export const deleteCourse = async (req, res) =>{
         let{id} = req.params
         let deletedCourse =  await Course.findOne({_id: id})
         if(!deletedCourse) return res.status(404).send({message: 'Course not found and not deleted'})
-        await Asignacion.deleteMany({ _course: id });
+        await Asignacion.deleteMany({ course: id });
         await Course.findByIdAndDelete(id);
         return res.send({message: `Course ${deletedCourse.nameCourse} deleted successfully`})
 
@@ -79,7 +79,7 @@ export const updateCourse = async(req, res) =>{
         // Actualizar el curso asignado a los alumnos
         await Asignacion.updateMany({ course: id }, { $set: { course: id } });
     
-        return res.send(curso);
+        return res.send(updateCourse);
       } catch (error) {
         console.error('Fail edit course:', error);
         return res.status(500).json({ error: 'Fail edit course' });

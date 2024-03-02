@@ -1,7 +1,7 @@
 'use strict'
 
 import User from './user.model.js'
-import {encrypt, checkPassword} from '../utils/validatos.js'
+import {encrypt, checkPassword, checkUpdate, checkUpdateRole} from '../utils/validatos.js'
 import { generarjwt } from '../utils/jwt.js'
 
 export const test = async (req, res)=>{
@@ -11,18 +11,18 @@ export const test = async (req, res)=>{
 
 export const createTeacherDefault = async(req, res)=>{
     try {
-        let  profesorExistente = await User.find({ _role: 'TEACHER_ROLE' });
-          if (!profesorExistente) {
-        passwordD = await encrypt('12345678')
+        let  profesorExistente = await User.findOne({ role: 'TEACHER_ROLE' });
+        if (!profesorExistente) {
+        let passwordD = await encrypt('12345678')
         let nuevoProfesor = new User({
             name: 'Carlos',
-            email: 'Carlos@example.com',
+            email: 'carlos@example.com',
             username: 'caralt',
             password: passwordD,
             phone: '12352602',
             role: 'TEACHER_ROLE'
           });
-        let user = new User(data)
+        let user = new User(nuevoProfesor)
         await user.save()
         console.log('teacher register correctly');
         } else {
@@ -31,27 +31,37 @@ export const createTeacherDefault = async(req, res)=>{
 
     } catch (error) {
         console.error(error)
-        res.status(500).send({message: 'Error registering teacher', error: error})
+        console.log('fail add user')
     }
 }
 
 export const login = async(req, res) =>{
     try {
-        let {username, password} = req.body
-        let user = await User.findOne({username})
-        if(user && await checkPassword(password, user.password)){
-            let loggedUser = {
-                uid: user._id,
-                username: user.username, 
-                name:  user.name,
-                role: user.role 
+        let data = req.body
+        let loginUs = await User.findOne({
+            $or:[ 
+                {
+                    username: data.username
+                },
+                {
+                    email: data.email
+                }
+            ]
+        })
+        if(!loginUs) return res.status(404).send({message: 'error validate username or email'})
+
+        if(loginUs){
+            if( await checkPassword(data.password, loginUs.password)){
+                let loggedUser = {
+                    uid: loginUs._id,
+                    username: loginUs.username, 
+                    name:  loginUs.name,
+                    role: loginUs.role 
+                }
+                let token = await generarjwt(loggedUser)
+                return res.send({message: `Welcome ${loggedUser.name}`, loggedUser, token})
             }
-            //Generar el token 
-            let token = await generarjwt(loggedUser)
-            //Responder al usuario 
-            return res.send({message: `Welcome ${loggedUser.name}`, loggedUser, token})
         }
-        if(!user) return res.status(404).send({message: 'user not found'})
     } catch (error) {
         console.error(error)
         return res.status(500).send({message: 'Error to login'})
@@ -76,12 +86,11 @@ export const userAdd = async(req, res) =>{
 
 export const deleteUser = async (req, res) =>{
     try {
-        
-        let{id} = req.params
-        let deletedUser =  await User.findOneAndDelete({_id: id})
-        if(!deletedUser) return res.status(404).send({message: 'User not found and not deleted'})
-        return res.send({message: `User ${deletedUser.name} deleted successfully`})
-
+        let data = req.body
+        data._id = req.user._id
+        let deletedAccount =  await User.findOneAndDelete({_id: data._id})
+        if(!deletedAccount) return res.status(404).send({message: 'Account not found and not deleted'})
+        return res.send({message: `Account ${deletedAccount.username} deleted successfully`})
     } catch (error) {
         console.error(error)
         return res.status(500).send({ message: 'Error deleting User', error: error })
@@ -90,18 +99,23 @@ export const deleteUser = async (req, res) =>{
 
 export const update = async (req, res) =>{
     try {
-        let { id } = req.params
         let data = req.body
-        let update =  checkUpdate(data, false)
+        data._id = req.user._id
+
+        let update = checkUpdate(data, data._id)
         if(!update) return res.status(400).send({message: 'Have submitted some data that cannot be update'})
-        //Actualizar 
+        let findU = await User.findOne({_id: data._id})
+        if(findU.role == 'STUDENT_ROLE'){
+            data.role = 'STUDENT_ROLE' 
+        }
         let updateUser = await User.findOneAndUpdate(
-            { _id: id },
+            { _id: data._id },
             data,
             {new: true} 
         )
-        if (!updateUser) return res.status(401).send({ message: 'User not found' })
-        return res.send({ message: 'User update', updateUser })
+        if (!updateUser) return res.status(401).send({ message: 'user not found' })
+        return res.send({ message: 'user update', updateUser })
+
     } catch (error) {
         console.error(error)
         if(error.keyValue.username) return res.status(400).send({message: `username ${error.keyValue.username} is alredy taken ` })
@@ -111,3 +125,30 @@ export const update = async (req, res) =>{
 
 }
 
+export const updateRole = async (req, res) =>{
+    try {
+        let {id} = req.params
+        let data = req.body
+
+        let update = checkUpdateRole(data, data._id)
+        if(!update) return res.status(400).send({message: 'Have submitted some data that cannot be update'})
+        let userFind =  await User.findOne({_id: id})
+        if(!userFind) return res.status(404).send({message: 'user not found'})
+        if(userFind.role === 'TEACHER_ROLE'){
+            data.role = 'STUDEND_ROLE'
+        }else{
+            data.role = 'TEACHER_ROLE'
+        }
+        let updateUser = await User.findOneAndUpdate(
+            { _id: id },
+            data,
+            {new: true} 
+        )
+        if (!updateUser) return res.status(401).send({ message: 'user not found' })
+        return res.send({ message: 'Role update', updateUser })
+
+    } catch (error) {
+        console.error(error)
+        return res.status(500).send({ message: 'Error updating role' })
+    }
+}
